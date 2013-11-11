@@ -11,6 +11,7 @@ use warnings;
 use Cwd 'abs_path';
 use File::Temp;
 use File::Copy 'copy';
+use File::stat;
 use Text::Markdown 'markdown';
 use Term::UI;
 use Term::ReadLine;
@@ -56,6 +57,7 @@ if (!@ARGV) {
 	&write_default_fields($filename) unless (-e $filename);
 	$file_is_temp = 0;
 }
+my $file_mtime = stat($filename)->mtime;
 
 # call vim to edit file
 system('vim', $filename);
@@ -109,8 +111,8 @@ if ($args{"to"} =~ /^\s*$/) {
 }
 
 # prompt to save file
-if ($file_is_temp && $term->ask_yn(
-		prompt => "Do you want to save the e-mail to a file?",
+if ($file_is_temp && stat($filename)->mtime != $file_mtime && $term->ask_yn(
+		prompt => "Your modifications will be lost. Save the content to a file?",
 		default => 'y')) {
 	my $save_filename = $term->readline("Enter a filename: ");
 	copy($filename, $save_filename);
