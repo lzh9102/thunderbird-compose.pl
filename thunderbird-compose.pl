@@ -36,9 +36,13 @@ sub path_to_url() {
 
 sub encode_body() {
 	my $text = shift;
+	# replace file path to url
+	$text =~ s {!\[([^\]]*)\]\(([^\)]*)\)} {![$1](@{[&path_to_url($2)]})};
+	# concatenate lines separated with \<newline>
+	$text =~ s/\\\n//g;
+	# convert markdown to html
 	my $html = markdown($text, {tab_width => $tabwidth});
-	$html =~ s/\\\n//g; # concatenate lines separated with \<newline>
-	$html =~ s/\n/ /g; # join lines
+	$html =~ s/\n/ /g; # join html lines
 	return $html;
 }
 
@@ -82,10 +86,6 @@ close TF;
 if ($args{"to"} =~ /^\s*$/) {
 	print "Recepients not specified.\n";
 } else {
-	# encode body and convert paths to url
-	my $body_html = &encode_body($body);
-	$body_html =~ s {(['"< ]src=['"])([^'"]+)} {$1@{[&path_to_url($2)]}};
-
 	# encode attachment paths as url
 	if (exists $args{"attachment"}) {
 		my @attachments = ();
@@ -98,7 +98,7 @@ if ($args{"to"} =~ /^\s*$/) {
 	for my $key (keys %args) {
 		$arg .= "$key='" . $args{$key} . "',";
 	}
-	$arg .= "body=" . $body_html;
+	$arg .= "body=" . &encode_body($body);
 
 	# invoke thunderbird
 	if ($term->ask_yn(
