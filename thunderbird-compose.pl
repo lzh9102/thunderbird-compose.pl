@@ -29,7 +29,7 @@ EOF
 	close TF;
 }
 
-sub encode_attachment_path() {
+sub path_to_url() {
 	return "file://" . abs_path($_[0]);
 }
 
@@ -83,7 +83,14 @@ if ($args{"to"} =~ /^\s*$/) {
 
 # encode body and convert paths to url
 my $body_html = &encode_body($body);
-$body_html =~ s {(['"< ]src=['"])([^'"]+)} {$1@{[&encode_attachment_path($2)]}};
+$body_html =~ s {(['"< ]src=['"])([^'"]+)} {$1@{[&path_to_url($2)]}};
+
+# encode attachment paths as url
+if (exists $args{"attachment"}) {
+	my @attachments = ();
+	@attachments = map { &path_to_url($_) } split(",", $args{"attachment"});
+	$args{"attachment"} = join(", ", @attachments);
+}
 
 # build command line argument string passed to thunderbird
 my $arg = "";
