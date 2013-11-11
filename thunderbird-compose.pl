@@ -10,14 +10,18 @@ use strict;
 use warnings;
 use File::Temp;
 use Text::Markdown 'markdown';
+use Term::UI;
+use Term::ReadLine;
+
+my $term = Term::ReadLine->new();
 
 sub write_default_fields() {
 	open TF, ">", $_[0];
 	print TF <<EOF
-TO:
-CC:
-SUBJECT:
-ATTACHMENT:
+TO: 
+CC: 
+SUBJECT: 
+ATTACHMENT: 
 ----- body below -----
 EOF
 	;
@@ -68,7 +72,7 @@ close TF;
 
 # check recepients
 if ($args{"to"} =~ /^\s*$/) {
-	print "recepients not specified, exiting\n";
+	print "Recepients not specified.\n";
 	exit 1;
 }
 
@@ -79,4 +83,8 @@ for my $key (keys %args) {
 $arg .= "body=" . &encode_body($body);
 
 # invoke thunderbird
-system('thunderbird', '--compose', $arg);
+if ($term->ask_yn(
+		prompt => "E-mail is ready. Open Thundebird compose window?",
+		default => 'y')) {
+	system('thunderbird', '--compose', $arg);
+}
