@@ -10,6 +10,7 @@ use strict;
 use warnings;
 use Cwd 'abs_path';
 use File::Temp;
+use File::Copy 'copy';
 use Text::Markdown 'markdown';
 use Term::UI;
 use Term::ReadLine;
@@ -41,20 +42,22 @@ sub encode_body() {
 	return $html;
 }
 
-my $tmpfile;
+my $filename;
+my $file_is_temp = 1;
 if (!@ARGV) {
-	$tmpfile = File::Temp->new();
-	&write_default_fields($tmpfile);
+	$filename = File::Temp->new();
+	&write_default_fields($filename);
 } else {
-	$tmpfile = $ARGV[0];
-	&write_default_fields($tmpfile) unless (-e $tmpfile);
+	$filename = $ARGV[0];
+	&write_default_fields($filename) unless (-e $filename);
+	$file_is_temp = 0;
 }
 
 # call vim to edit file
-system('vim', $tmpfile);
+system('vim', $filename);
 
 # read tmpfile back and process it
-open TF, "<", $tmpfile;
+open TF, "<", $filename;
 my %args = ();
 
 while (<TF>) { # read header
@@ -78,30 +81,37 @@ close TF;
 # check recepients
 if ($args{"to"} =~ /^\s*$/) {
 	print "Recepients not specified.\n";
-	exit 1;
+} else {
+	# encode body and convert paths to url
+	my $body_html = &encode_body($body);
+	$body_html =~ s {(['"< ]src=['"])([^'"]+)} {$1@{[&path_to_url($2)]}};
+
+	# encode attachment paths as url
+	if (exists $args{"attachment"}) {
+		my @attachments = ();
+		@attachments = map { &path_to_url($_) } split(",", $args{"attachment"});
+		$args{"attachment"} = join(", ", @attachments);
+	}
+
+	# build command line argument string passed to thunderbird
+	my $arg = "";
+	for my $key (keys %args) {
+		$arg .= "$key='" . $args{$key} . "',";
+	}
+	$arg .= "body=" . $body_html;
+
+	# invoke thunderbird
+	if ($term->ask_yn(
+			prompt => "E-mail is ready. Open Thundebird compose window?",
+			default => 'y')) {
+		system('thunderbird', '--compose', $arg);
+	}
 }
 
-# encode body and convert paths to url
-my $body_html = &encode_body($body);
-$body_html =~ s {(['"< ]src=['"])([^'"]+)} {$1@{[&path_to_url($2)]}};
-
-# encode attachment paths as url
-if (exists $args{"attachment"}) {
-	my @attachments = ();
-	@attachments = map { &path_to_url($_) } split(",", $args{"attachment"});
-	$args{"attachment"} = join(", ", @attachments);
-}
-
-# build command line argument string passed to thunderbird
-my $arg = "";
-for my $key (keys %args) {
-	$arg .= "$key='" . $args{$key} . "',";
-}
-$arg .= "body=" . $body_html;
-
-# invoke thunderbird
-if ($term->ask_yn(
-		prompt => "E-mail is ready. Open Thundebird compose window?",
+# prompt to save file
+if ($file_is_temp && $term->ask_yn(
+		prompt => "Do you want to save the e-mail to a file?",
 		default => 'y')) {
-	system('thunderbird', '--compose', $arg);
+	my $save_filename = $term->readline("Enter a filename: ");
+	copy($filename, $save_filename);
 }
