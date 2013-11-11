@@ -114,6 +114,9 @@ if ($args{"to"} =~ /^\s*$/) {
 if ($file_is_temp && stat($filename)->mtime != $file_mtime && $term->ask_yn(
 		prompt => "Your modifications will be lost. Save the content to a file?",
 		default => 'y')) {
-	my $save_filename = $term->readline("Enter a filename: ");
-	copy($filename, $save_filename);
+	while () {
+		my $save_filename = $term->readline("Enter a filename: ");
+		last if (copy($filename, $save_filename));
+		print "Failed to save the file to $save_filename\n";
+	}
 }
