@@ -8,6 +8,7 @@ my $tabwidth = 3;
 
 use strict;
 use warnings;
+use Cwd 'abs_path';
 use File::Temp;
 use Text::Markdown 'markdown';
 use Term::UI;
@@ -26,6 +27,10 @@ ATTACHMENT:
 EOF
 	;
 	close TF;
+}
+
+sub encode_attachment_path() {
+	return "file://" . abs_path($_[0]);
 }
 
 sub encode_body() {
@@ -76,11 +81,16 @@ if ($args{"to"} =~ /^\s*$/) {
 	exit 1;
 }
 
+# encode body and convert paths to url
+my $body_html = &encode_body($body);
+$body_html =~ s {(['"< ]src=['"])([^'"]+)} {$1@{[&encode_attachment_path($2)]}};
+
+# build command line argument string passed to thunderbird
 my $arg = "";
 for my $key (keys %args) {
 	$arg .= "$key='" . $args{$key} . "',";
 }
-$arg .= "body=" . &encode_body($body);
+$arg .= "body=" . $body_html;
 
 # invoke thunderbird
 if ($term->ask_yn(
