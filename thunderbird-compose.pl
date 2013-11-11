@@ -65,7 +65,7 @@ while (<TF>) { # read header
 		$value =~ s/\s+$//; # remove trailing spaces
 		$value =~ s/\"/\\"/g;
 		$args{$key} = $value;
-	} else {
+	} elsif ($line =~ /^---+/) {
 		last;
 	}
 }
