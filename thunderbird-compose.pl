@@ -16,20 +16,20 @@ use Text::Markdown 'markdown';
 use HTML::Packer;
 use Term::UI;
 use Term::ReadLine;
+use Getopt::Long;
 
 my $term = Term::ReadLine->new();
 my $packer = HTML::Packer->init();
 
 sub write_default_fields() {
-	open TF, ">", $_[0];
-	print TF <<EOF
-TO: 
-CC: 
-SUBJECT: 
-ATTACHMENT: 
------ body below -----
-EOF
-	;
+	my $args_ref = shift;
+	my %args = %$args_ref;
+	open TF, ">", $args{filename};
+	print TF "TO: " . $args{recepient} . "\n";
+	print TF "CC: \n";
+	print TF "SUBJECT: " . $args{subject} . "\n";
+	print TF "ATTACHMENT: " . $args{attachment} . "\n";
+	print TF "----- e-mail body -----\n";
 	close TF;
 }
 
@@ -49,16 +49,31 @@ sub encode_body() {
 	return $html;
 }
 
+# parse options
+my $opt_subject = "";
+my @opt_attachments = ();
+
+GetOptions(
+	"s|subject=s" => \$opt_subject,
+	"a|attachment=s" => \@opt_attachments
+);
+
+# allow specifying attachments in comma-separated list (ex. -a file1,file2)
+@opt_attachments = split(',', join(',', @opt_attachments));
+
+# build recepient list
+my @opt_recepients = @ARGV;
+
+# create temp file
 my $filename;
 my $file_is_temp = 1;
-#if (!@ARGV) {
-	$filename = File::Temp->new();
-	&write_default_fields($filename);
-#} else {
-#	$filename = $ARGV[0];
-#	&write_default_fields($filename) unless (-e $filename);
-#	$file_is_temp = 0;
-#}
+$filename = File::Temp->new();
+&write_default_fields({
+	filename => $filename,
+	subject => $opt_subject,
+	recepient => join(',', @opt_recepients),
+	attachment => join(',', @opt_attachments)
+});
 my $file_mtime = stat($filename)->mtime;
 
 # call vim to edit file
