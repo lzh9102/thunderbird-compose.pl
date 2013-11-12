@@ -10,4 +10,4 @@ before being passed to thunderbird.
 ### Required perl modules
 
 - Text::Markdown
-- HTML::Packer
+- HTML::Clean
