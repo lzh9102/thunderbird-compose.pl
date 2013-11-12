@@ -13,10 +13,12 @@ use File::Temp;
 use File::Copy 'copy';
 use File::stat;
 use Text::Markdown 'markdown';
+use HTML::Packer;
 use Term::UI;
 use Term::ReadLine;
 
 my $term = Term::ReadLine->new();
+my $packer = HTML::Packer->init();
 
 sub write_default_fields() {
 	open TF, ">", $_[0];
@@ -43,7 +45,7 @@ sub encode_body() {
 	$text =~ s/\\\n//g;
 	# convert markdown to html
 	my $html = markdown($text, {tab_width => $tabwidth});
-	$html =~ s/\n/ /g; # join html lines
+	$packer->minify(\$html, {remove_newlines => 1});
 	return $html;
 }
 
