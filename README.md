@@ -3,6 +3,10 @@ preprocessed using
 [Text::Markdown](http://search.cpan.org/~bobtfish/Text-Markdown-1.000031/lib/Text/Markdown.pm)
 before being passed to thunderbird.
 
+### Usage
+
+	./thunderbird-compose.pl [-s subject] [-a attachment] to-addr ...
+
 ### Required perl modules
 
 - Text::Markdown
