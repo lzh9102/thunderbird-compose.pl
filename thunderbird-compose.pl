@@ -29,7 +29,7 @@ sub write_default_fields() {
 	print TF "CC: " . $args{cc} . "\n";
 	print TF "SUBJECT: " . $args{subject} . "\n";
 	print TF "ATTACHMENT: " . $args{attachment} . "\n";
-	print TF "----- body (markdown syntax) -----\n";
+	print TF "----- body (markdown syntax) -----\n\n";
 	close TF;
 }
 
