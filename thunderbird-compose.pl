@@ -21,8 +21,7 @@ use Getopt::Long;
 my $term = Term::ReadLine->new();
 
 sub write_default_fields() {
-	my $args_ref = shift;
-	my %args = %$args_ref;
+	my %args = @_;
 	open TF, ">", $args{filename};
 	print TF "TO: " . $args{recepient} . "\n";
 	print TF "CC: " . $args{cc} . "\n";
@@ -51,11 +50,10 @@ sub encode_body() {
 }
 
 sub create_tmpfile() {
-	my $args_ref = shift;
-	my %args = %$args_ref;
+	my %args = @_;
 	my $filename = File::Temp->new();
 	$args{filename} = $filename;
-	&write_default_fields(\%args);
+	&write_default_fields(%args);
 	return $filename;
 }
 
@@ -77,12 +75,12 @@ GetOptions(
 # build recepient list
 my @opt_recepients = @ARGV;
 
-my $filename = &create_tmpfile({
+my $filename = &create_tmpfile(
 	subject => $opt_subject,
 	recepient => join(',', @opt_recepients),
 	attachment => join(',', @opt_attachments),
 	cc => join(',', @opt_cc_list)
-});
+);
 my $file_mtime = stat($filename)->mtime;
 
 # call vim to edit file
