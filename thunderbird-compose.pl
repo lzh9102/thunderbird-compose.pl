@@ -50,6 +50,15 @@ sub encode_body() {
 	return $html;
 }
 
+sub create_tmpfile() {
+	my $args_ref = shift;
+	my %args = %$args_ref;
+	my $filename = File::Temp->new();
+	$args{filename} = $filename;
+	&write_default_fields(\%args);
+	return $filename;
+}
+
 # parse options
 my $opt_subject = "";
 my @opt_attachments = ();
@@ -68,11 +77,7 @@ GetOptions(
 # build recepient list
 my @opt_recepients = @ARGV;
 
-# create temp file
-my $filename;
-$filename = File::Temp->new();
-&write_default_fields({
-	filename => $filename,
+my $filename = &create_tmpfile({
 	subject => $opt_subject,
 	recepient => join(',', @opt_recepients),
 	attachment => join(',', @opt_attachments),
