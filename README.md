@@ -5,7 +5,7 @@ before being passed to thunderbird.
 
 ### Usage
 
-	./thunderbird-compose.pl [-s subject] [-a attachment] to-addr ...
+	./thunderbird-compose.pl [-s subject] [-a attachment] [-c cc-list] to-addr ...
 
 ### Required perl modules
 

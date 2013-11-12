@@ -26,7 +26,7 @@ sub write_default_fields() {
 	my %args = %$args_ref;
 	open TF, ">", $args{filename};
 	print TF "TO: " . $args{recepient} . "\n";
-	print TF "CC: \n";
+	print TF "CC: " . $args{cc} . "\n";
 	print TF "SUBJECT: " . $args{subject} . "\n";
 	print TF "ATTACHMENT: " . $args{attachment} . "\n";
 	print TF "----- e-mail body -----\n";
@@ -52,14 +52,17 @@ sub encode_body() {
 # parse options
 my $opt_subject = "";
 my @opt_attachments = ();
+my @opt_cc_list = ();
 
 GetOptions(
 	"s|subject=s" => \$opt_subject,
-	"a|attachment=s" => \@opt_attachments
+	"a|attachment=s" => \@opt_attachments,
+	"c|cc=s" => \@opt_cc_list
 );
 
 # allow specifying attachments in comma-separated list (ex. -a file1,file2)
 @opt_attachments = split(',', join(',', @opt_attachments));
+@opt_cc_list = split(',', join(',', @opt_cc_list));
 
 # build recepient list
 my @opt_recepients = @ARGV;
@@ -72,7 +75,8 @@ $filename = File::Temp->new();
 	filename => $filename,
 	subject => $opt_subject,
 	recepient => join(',', @opt_recepients),
-	attachment => join(',', @opt_attachments)
+	attachment => join(',', @opt_attachments),
+	cc => join(',', @opt_cc_list)
 });
 my $file_mtime = stat($filename)->mtime;
 
