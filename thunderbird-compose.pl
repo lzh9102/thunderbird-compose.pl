@@ -64,14 +64,13 @@ sub read_tmpfile() {
 
 	while (<TF>) { # read header
 		my $line = $_;
+		last if ($line =~ /^---+/);
 		if ($line =~ /^([a-zA-Z]+):\s*(.*)$/) {
 			my $key = lc($1);
 			my $value = $2;
 			$value =~ s/\s+$//; # remove trailing spaces
 			$value =~ s/\"/\\"/g;
 			$args{$key} = $value;
-		} elsif ($line =~ /^---+/) {
-			last;
 		}
 	}
 	my $body = "";
