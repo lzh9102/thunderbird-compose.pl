@@ -86,7 +86,8 @@ my $file_mtime = stat($filename)->mtime;
 # call vim to edit file
 system('vim', $filename);
 
-if (stat($filename)->mtime == $file_mtime) { # file not modified
+# exit if file not modified
+if (stat($filename)->mtime == $file_mtime) {
 	print "File not modified.\n";
 	exit 1;
 }
