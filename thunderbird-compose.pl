@@ -51,14 +51,14 @@ sub encode_body() {
 
 my $filename;
 my $file_is_temp = 1;
-if (!@ARGV) {
+#if (!@ARGV) {
 	$filename = File::Temp->new();
 	&write_default_fields($filename);
-} else {
-	$filename = $ARGV[0];
-	&write_default_fields($filename) unless (-e $filename);
-	$file_is_temp = 0;
-}
+#} else {
+#	$filename = $ARGV[0];
+#	&write_default_fields($filename) unless (-e $filename);
+#	$file_is_temp = 0;
+#}
 my $file_mtime = stat($filename)->mtime;
 
 # call vim to edit file
