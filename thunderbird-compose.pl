@@ -70,7 +70,6 @@ my @opt_recepients = @ARGV;
 
 # create temp file
 my $filename;
-my $file_is_temp = 1;
 $filename = File::Temp->new();
 &write_default_fields({
 	filename => $filename,
@@ -133,7 +132,7 @@ if ($args{"to"} =~ /^\s*$/) {
 }
 
 # prompt to save file
-if ($file_is_temp && stat($filename)->mtime != $file_mtime && $term->ask_yn(
+if (stat($filename)->mtime != $file_mtime && $term->ask_yn(
 		prompt => "Your modifications will be lost. Save the content to a file?",
 		default => 'y')) {
 	while () {
