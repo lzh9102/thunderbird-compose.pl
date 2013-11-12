@@ -57,6 +57,32 @@ sub create_tmpfile() {
 	return $filename;
 }
 
+sub read_tmpfile() {
+	my $filename = shift;
+	open TF, "<", $filename;
+	my %args = ();
+
+	while (<TF>) { # read header
+		my $line = $_;
+		if ($line =~ /^([a-zA-Z]+):\s*(.*)$/) {
+			my $key = lc($1);
+			my $value = $2;
+			$value =~ s/\s+$//; # remove trailing spaces
+			$value =~ s/\"/\\"/g;
+			$args{$key} = $value;
+		} elsif ($line =~ /^---+/) {
+			last;
+		}
+	}
+	my $body = "";
+	while (<TF>) { # read body
+		$body .= $_;
+	}
+	close TF;
+	$args{body} = $body;
+	return %args;
+}
+
 # parse options
 my $opt_subject = "";
 my @opt_attachments = ();
@@ -93,26 +119,7 @@ if (stat($filename)->mtime == $file_mtime) {
 }
 
 # read tmpfile back and process it
-open TF, "<", $filename;
-my %args = ();
-
-while (<TF>) { # read header
-	my $line = $_;
-	if ($line =~ /^([a-zA-Z]+):\s*(.*)$/) {
-		my $key = lc($1);
-		my $value = $2;
-		$value =~ s/\s+$//; # remove trailing spaces
-		$value =~ s/\"/\\"/g;
-		$args{$key} = $value;
-	} elsif ($line =~ /^---+/) {
-		last;
-	}
-}
-my $body = "";
-while (<TF>) { # read body
-	$body .= $_;
-}
-close TF;
+my %args = &read_tmpfile($filename);
 
 # check recepients
 if ($args{"to"} =~ /^\s*$/) {
@@ -128,9 +135,11 @@ if ($args{"to"} =~ /^\s*$/) {
 	# build command line argument string passed to thunderbird
 	my $arg = "";
 	for my $key (keys %args) {
-		$arg .= "$key='" . $args{$key} . "',";
+		if ($key ne "body") {
+			$arg .= "$key='" . $args{$key} . "',";
+		}
 	}
-	$arg .= "body=" . &encode_body($body);
+	$arg .= "body=" . &encode_body($args{body});
 
 	# invoke thunderbird
 	if ($term->ask_yn(
