@@ -83,6 +83,11 @@ my $file_mtime = stat($filename)->mtime;
 # call vim to edit file
 system('vim', $filename);
 
+if (stat($filename)->mtime == $file_mtime) { # file not modified
+	print "File not modified.\n";
+	exit 1;
+}
+
 # read tmpfile back and process it
 open TF, "<", $filename;
 my %args = ();
@@ -132,8 +137,8 @@ if ($args{"to"} =~ /^\s*$/) {
 }
 
 # prompt to save file
-if (stat($filename)->mtime != $file_mtime && $term->ask_yn(
-		prompt => "Your modifications will be lost. Save the content to a file?",
+if ($term->ask_yn(
+		prompt => "Save the modified content to a file?",
 		default => 'y')) {
 	while () {
 		my $save_filename = $term->readline("Enter a filename: ");
