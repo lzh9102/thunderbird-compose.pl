@@ -126,10 +126,10 @@ if ($args{"to"} =~ /^\s*$/) {
 	print "Recepients not specified.\n";
 } else {
 	# encode attachment paths as url
-	if (exists $args{"attachment"}) {
+	if (exists $args{attachment}) {
 		my @attachments = ();
-		@attachments = map { &path_to_url($_) } split(",", $args{"attachment"});
-		$args{"attachment"} = join(", ", @attachments);
+		@attachments = map { &path_to_url($_) } split(",", $args{attachment});
+		$args{attachment} = join(", ", @attachments);
 	}
 
 	# build command line argument string passed to thunderbird
